@@ -30,7 +30,7 @@ def do_factcheck(val, pcdb, gpt_query):
             return output, url
 
     # No good results found
-    return "No results found."
+    return "No results found.", ""
 
 if __name__ == "__main__":
     pcdb = PineconeDB()

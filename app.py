@@ -25,8 +25,12 @@ def ask():
         if not question:
             flash('Question is required!')
         else:
-            result, url = do_factcheck(question, pcdb, gpt_query)
-            messages.insert(0, ({'claim': question, 'result': result, 'url': url}))
+            try:
+                result, url = do_factcheck(question, pcdb, gpt_query)
+                messages.insert(0, ({'claim': question, 'result': result, 'url': url})
+            except Exception as e:
+                print("Exception: {}".format(e))
+
             return redirect(url_for('index'))
 
     return render_template('ask.html')
