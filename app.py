@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 messages = [{'claim': 'Claim to fact check',
              'result': 'Fact check output',
-             'url': "www.google.com"}
+             'url': "https://github.com/dtkettler/factchecker"}
             ]
 
 pcdb = PineconeDB()

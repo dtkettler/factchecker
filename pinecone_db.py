@@ -17,10 +17,11 @@ class PineconeDB:
     def add_strings(self, strings, url):
         payload = []
         for index, string in enumerate(strings):
+            if len(string.strip()) == 0:
+                continue
             embeddings = self.embedder.get_embedding(string)
             payload.append((url + str(index), embeddings.tolist(), {"url": url}))
 
-        #self.index.upsert([(id, embeddings.tolist())])
         self.index.upsert(payload)
 
     def query(self, string):

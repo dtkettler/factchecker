@@ -24,7 +24,6 @@ for month_url in months:
 
             summary_text = summary['choices'][0]["message"]["content"]
             print(summary_text)
-            break
 
             pcdb.add_strings(summary_text.split("\n"), article)
 
