@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>{% block title %} Ask for a fact check {% endblock %}</h1>
+    <form method="post">
+        <label for="content">Claim</label>
+        <br>
+        <textarea name="question"
+                  placeholder="Claim to fact check"
+                  rows="5"
+                  cols="60"
+                  >{{ request.form['content'] }}</textarea>
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+{% endblock %}

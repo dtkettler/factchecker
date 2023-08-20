@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>{% block title %} Fact Checks {% endblock %}</h1>
+    {% for message in messages %}
+        <div class='message'>
+            <h3>{{ message['claim'] }}</h3>
+            <p>{{ message['result'] }}</p>
+            <p><a href="{{ message['url'] }}">{{ message['url'] }}</a></p>
+        </div>
+    {% endfor %}
+{% endblock %}
