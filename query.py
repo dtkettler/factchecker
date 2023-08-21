@@ -3,7 +3,7 @@ from pinecone_db import PineconeDB
 from gpt import GPT
 
 
-valid_domains = ["www.politifact.com", "www.factcheck.org"]
+valid_domains = ["www.politifact.com", "www.factcheck.org", "www.snopes.com"]
 threshold = 0.5
 
 def do_factcheck(val, pcdb, gpt_query):

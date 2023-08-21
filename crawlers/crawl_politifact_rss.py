@@ -19,4 +19,4 @@ for entry in entries:
     text = " - ".join(summary.split(" - ")[1:])
     print(text)
 
-    pcdb.add_strings([summary], link)
+    pcdb.add_strings([text], link)

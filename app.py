@@ -27,7 +27,7 @@ def ask():
         else:
             try:
                 result, url = do_factcheck(question, pcdb, gpt_query)
-                messages.insert(0, ({'claim': question, 'result': result, 'url': url})
+                messages.insert(0, ({'claim': question, 'result': result, 'url': url}))
             except Exception as e:
                 print("Exception: {}".format(e))
 
