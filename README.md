@@ -8,6 +8,7 @@ In order to run this code you will need to create a keys.ini file.  This needs t
 vector database and OpenAI's GPT.  Consult their documentation for how to get those keys.
 
 This file should look like this:
+
 ![keys.ini](doc/keys.png)
 
 Obviously put in your own pinecone_key and openai_key.  Also change pinecone_environment to the appropriate type if you
