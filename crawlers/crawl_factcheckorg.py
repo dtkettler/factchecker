@@ -25,7 +25,14 @@ for month_url in months:
             summary_text = summary['choices'][0]["message"]["content"]
             print(summary_text)
 
-            pcdb.add_strings(summary_text.split("\n"), article)
+            lines = summary_text.split("\n")
+            cleaned_lines = []
+            for line in lines:
+                if line.strip():
+                    cleaned_lines.append("".join(line.split(".")[1:]).strip())
+            #print(cleaned_lines)
+
+            pcdb.add_strings(cleaned_lines, article)
 
             print("{} added, sleeping for a bit".format(article))
         except Exception as e:

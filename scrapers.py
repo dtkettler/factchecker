@@ -61,7 +61,18 @@ def scrape_snopes_url(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    outstring = "The claim that, \""
+    outstring = ""
+
+    h3s = soup.findAll('h3')
+    for h3 in h3s:
+        if "class" in h3.attrs and h3["class"] and h3["class"][0] == "is-style-article-section":
+            tag = h3.next_sibling
+            while tag:
+                if tag.name == "p":
+                    outstring += tag.text + "\n"
+                tag = tag.next_sibling
+
+    outstring += "The claim that, \""
 
     divs = soup.findAll('div')
     for div in divs:
@@ -75,16 +86,7 @@ def scrape_snopes_url(url):
             rating_url = link['href']
             break
 
-    outstring += snopes_ratings[rating_url] + "\n"
-
-    h3s = soup.findAll('h3')
-    for h3 in h3s:
-        if "class" in h3.attrs and h3["class"] and h3["class"][0] == "is-style-article-section":
-            tag = h3.next_sibling
-            while tag:
-                if tag.name == "p":
-                    outstring += tag.text + "\n"
-                tag = tag.next_sibling
+    outstring += snopes_ratings[rating_url]
 
     return outstring
 

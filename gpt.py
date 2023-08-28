@@ -41,7 +41,8 @@ class GPT:
                 #{"role": "system", "content": "Summarize the content in a single sentence."},
                 #{"role": "system", "content": "Summarize the most significant factual claims in the content and output a list with one claim per sentence and one sentence per line."},
                 {"role": "system",
-                 "content": "Summarize the most significant claims in the content and output a list with complete sentences, one claim per sentence, and one sentence per line."},
+                 #"content": "Summarize the most significant claims in the content and output a list with complete sentences, one claim per sentence, and one sentence per line."},
+                 "content": "Summarize up to five of the principal claims in the content and output a numbered list with complete sentences, one claim per sentence, and one sentence per line.  Each sentence should be independent and not reference the other sentences."},
                 {"role": "user", "content": text}
             ]
         )
