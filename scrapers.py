@@ -97,6 +97,8 @@ def scrape_appropriate(url):
         return scrape_politifact_url(url)
     elif domain == "www.factcheck.org":
         return scrape_factcheckorg_url(url)
+    elif domain == "www.snopes.com":
+        return scrape_snopes_url(url)
     else:
         return "Invalid Domain"
 

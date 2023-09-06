@@ -49,6 +49,19 @@ class GPT:
 
         return completion
 
+    def get_article_summary(self, claim, text):
+        openai.api_key = self.api_key
+        completion = openai.ChatCompletion.create(
+            model=self.get_model(text),
+            messages=[
+                {"role": "system",
+                 "content": "Summarize all details of the content that relate to the claim: {}".format(claim)},
+                {"role": "user", "content": text}
+            ]
+        )
+
+        return completion
+
     def get_model(self, text):
         encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
         token_count = len(encoding.encode(text))
