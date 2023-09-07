@@ -1,4 +1,5 @@
 import requests
+import sqlite3
 from urllib.parse import urlparse
 import tiktoken
 from bs4 import BeautifulSoup
@@ -27,7 +28,6 @@ snopes_ratings = {"/fact-check/rating/research-in-progress": "still being resear
                   "/fact-check/rating/recall": "a genuine recall."}
 
 def scrape_politifact_url(url):
-    #print("Checking {}".format(url))
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -63,14 +63,25 @@ def scrape_snopes_url(url):
 
     outstring = ""
 
+    found = False
     h3s = soup.findAll('h3')
     for h3 in h3s:
         if "class" in h3.attrs and h3["class"] and h3["class"][0] == "is-style-article-section":
+            found = True
             tag = h3.next_sibling
             while tag:
                 if tag.name == "p":
                     outstring += tag.text + "\n"
                 tag = tag.next_sibling
+
+    if not found:
+        blockquotes = soup.findAll('blockquote')
+        first = blockquotes[0]
+        tag = first.next_sibling
+        while tag:
+            if tag.name == "p":
+                outstring += tag.text + "\n"
+            tag = tag.next_sibling
 
     outstring += "The claim that, \""
 
@@ -91,16 +102,31 @@ def scrape_snopes_url(url):
     return outstring
 
 def scrape_appropriate(url):
+    con = sqlite3.connect("results.db")
+    cur = con.cursor()
+
+    res = cur.execute("SELECT text FROM articles where url = ?", (url,))
+    row = res.fetchone()
+    if row:
+        return row[0]
+
     domain = urlparse(url).netloc
 
+    output = ""
     if domain == "www.politifact.com":
-        return scrape_politifact_url(url)
+        output = scrape_politifact_url(url)
     elif domain == "www.factcheck.org":
-        return scrape_factcheckorg_url(url)
+        output = scrape_factcheckorg_url(url)
     elif domain == "www.snopes.com":
-        return scrape_snopes_url(url)
+        output = scrape_snopes_url(url)
     else:
         return "Invalid Domain"
+
+    data = ({'url': url, 'text': output})
+    cur.execute("INSERT INTO articles VALUES (:url, :text)", data)
+    con.commit()
+
+    return output
 
 def get_factcheck_articles(url):
     response = requests.get(url)
@@ -196,3 +222,4 @@ def trim_tokens(text):
 #print(scrape_factcheckorg_url("https://www.factcheck.org/2023/07/bidens-numbers-july-2023-update/"))
 #print(scrape_factcheckorg_url("https://www.factcheck.org/2023/05/factchecking-ron-desantis-presidential-announcement/"))
 #print(scrape_snopes_url("https://www.snopes.com/fact-check/senomyx-flavor-additive/"))
+#print(scrape_snopes_url("https://www.snopes.com/fact-check/the-write-stuff/"))

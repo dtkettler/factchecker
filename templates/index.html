@@ -4,7 +4,7 @@
     <h1>{% block title %} Fact Checks {% endblock %}</h1>
     {% for message in messages %}
         <div class='message'>
-            <h3><b>Claim: </b>{{ message['claim'] }}</h3>
+            <a href="{{ url_for('index') }}?id={{ message['id'] }}"><h3><b>Claim: </b>{{ message['claim'] }}</h3></a>
             <p>{{ message['result'] }}</p>
             <p><a href="{{ message['url'] }}">{{ message['url'] }}</a></p>
         </div>
