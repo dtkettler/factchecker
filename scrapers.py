@@ -76,12 +76,25 @@ def scrape_snopes_url(url):
 
     if not found:
         blockquotes = soup.findAll('blockquote')
-        first = blockquotes[0]
-        tag = first.next_sibling
-        while tag:
-            if tag.name == "p":
-                outstring += tag.text + "\n"
-            tag = tag.next_sibling
+        if blockquotes:
+            found = True
+            first = blockquotes[0]
+            tag = first.next_sibling
+            while tag:
+                if tag.name == "p":
+                    outstring += tag.text + "\n"
+                tag = tag.next_sibling
+
+    if not found:
+        sections = soup.findAll('section')
+        for section in sections:
+            if "id" in section.attrs and section["id"] == "fact_check_rating_container":
+                found = True
+                tag = section.next_sibling
+                while tag:
+                    if tag.name == "p":
+                        outstring += tag.text + "\n"
+                    tag = tag.next_sibling
 
     outstring += "The claim that, \""
 
@@ -223,3 +236,4 @@ def trim_tokens(text):
 #print(scrape_factcheckorg_url("https://www.factcheck.org/2023/05/factchecking-ron-desantis-presidential-announcement/"))
 #print(scrape_snopes_url("https://www.snopes.com/fact-check/senomyx-flavor-additive/"))
 #print(scrape_snopes_url("https://www.snopes.com/fact-check/the-write-stuff/"))
+#print(scrape_snopes_url("https://www.snopes.com/fact-check/maui-wildfires-caused-by-direct-energy-weapon/"))
