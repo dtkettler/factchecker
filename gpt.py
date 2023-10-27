@@ -1,6 +1,7 @@
 import openai
 import configparser
 import tiktoken
+import time
 from scrapers import *
 
 
@@ -15,11 +16,30 @@ class GPT:
         self.long_model = "gpt-3.5-turbo-16k"
         self.lower_token_count = 3500
 
+    def completion_with_retries(self, model, messages, temperature=0.5, max_retries=10):
+        openai.api_key = self.api_key
+
+        successful = False
+        tries = 0
+        while tries < max_retries and not successful:
+            try:
+                completion = openai.ChatCompletion.create(model=model, messages=messages, temperature=temperature)
+                successful = True
+            except Exception as e:
+                print("error connecting to GPT")
+                print(e)
+                time.sleep((tries + 1) * 2)
+                completion = ""
+
+            tries += 1
+
+        return completion
+
     def get_factcheck(self, query, url):
         content = scrape_appropriate(url)
 
         openai.api_key = self.api_key
-        completion = openai.ChatCompletion.create(
+        completion = self.completion_with_retries(
             model=self.get_model(content),
             messages=[
                 #{"role": "system", "content": "Answer whether or not \"{}\" is factual given the content.".format(query)},
@@ -35,7 +55,7 @@ class GPT:
 
     def get_summary(self, text):
         openai.api_key = self.api_key
-        completion = openai.ChatCompletion.create(
+        completion = self.completion_with_retries(
             model=self.get_model(text),
             messages=[
                 #{"role": "system", "content": "Summarize the content in a single sentence."},
@@ -51,7 +71,7 @@ class GPT:
 
     def get_article_summary(self, claim, text):
         openai.api_key = self.api_key
-        completion = openai.ChatCompletion.create(
+        completion = self.completion_with_retries(
             model=self.get_model(text),
             messages=[
                 {"role": "system",
