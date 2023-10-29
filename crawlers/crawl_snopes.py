@@ -1,7 +1,10 @@
 import time
+import os
 from pinecone_db import PineconeDB
 from scrapers import get_snopes_categories, get_snopes_articles, get_snopes_claim
 
+
+os.chdir("..")
 
 index_url = "https://www.snopes.com/sitemap/"
 categories = get_snopes_categories(index_url)

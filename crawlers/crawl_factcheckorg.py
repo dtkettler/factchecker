@@ -1,8 +1,11 @@
 import time
+import os
 from pinecone_db import PineconeDB
 from scrapers import scrape_factcheckorg_url, get_factcheck_articles, get_factcheck_months
 from gpt import GPT
 
+
+os.chdir("..")
 
 index_url = "https://www.factcheck.org/archives/"
 months = get_factcheck_months(index_url)
@@ -39,4 +42,4 @@ for month_url in months:
             print(e)
             print("Error in {}".format(article))
 
-        time.sleep(30)
+        time.sleep(2)
