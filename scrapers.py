@@ -115,13 +115,13 @@ def scrape_snopes_url(url):
     return outstring
 
 def scrape_appropriate(url):
-    con = sqlite3.connect("results.db")
-    cur = con.cursor()
+    #con = sqlite3.connect("results.db")
+    #cur = con.cursor()
 
-    res = cur.execute("SELECT text FROM articles where url = ?", (url,))
-    row = res.fetchone()
-    if row:
-        return row[0]
+    #res = cur.execute("SELECT text FROM articles where url = ?", (url,))
+    #row = res.fetchone()
+    #if row:
+    #    return row[0]
 
     domain = urlparse(url).netloc
 
@@ -136,8 +136,8 @@ def scrape_appropriate(url):
         return "Invalid Domain"
 
     data = ({'url': url, 'text': output})
-    cur.execute("INSERT INTO articles VALUES (:url, :text)", data)
-    con.commit()
+    #cur.execute("INSERT INTO articles VALUES (:url, :text)", data)
+    #con.commit()
 
     return output
 
