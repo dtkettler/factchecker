@@ -1,3 +1,4 @@
+import sys
 from urllib.parse import urlparse
 from pinecone_db import PineconeDB
 from gpt import GPT
@@ -35,7 +36,10 @@ def do_factcheck(val, pcdb, gpt_query):
 if __name__ == "__main__":
     pcdb = PineconeDB()
     gpt_query = GPT()
-    val = input("Enter statement you want to fact check: ")
+    if len(sys.argv) > 1:
+        val = sys.argv[1]
+    else:
+        val = input("Enter statement you want to fact check: ")
 
     output, url = do_factcheck(val, pcdb, gpt_query)
 

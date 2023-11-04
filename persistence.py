@@ -28,7 +28,7 @@ def get_persistence_layer():
 
 class PersistenceSQLite(Persistence):
     def __init__(self):
-        self.con = sqlite3.connect("results.db")
+        self.con = sqlite3.connect("results.db", check_same_thread=False)
         self.cur = self.con.cursor()
 
     def get_messages(self, id=None):
