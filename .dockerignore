@@ -1,5 +1,7 @@
 Dockerfile
 README.md
+results.db
+examples
 *.pyc
 *.pyo
 *.pyd
