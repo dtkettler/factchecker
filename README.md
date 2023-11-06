@@ -14,6 +14,13 @@ This file should look like this:
 Obviously put in your own pinecone_key and openai_key.  Also change pinecone_environment to the appropriate type if you
 are not using gcp-starter.
 
+## Persistence ##
+
+Previous results are stored in a simple database.  I used sqlite for this initially, but I have added the option to use
+Google Firestore instead, primarily for running on Google's Cloud Run.  To use it change the "persistence" option in
+config.ini to "firestore".  Also add the "firestore_project" option to keys.ini and set it to your Google Cloud project
+ID.
+
 ## Loading the data ##
 
 In order for this system to work you will need to populate the vector database with claims to check against.  I'm adding
@@ -33,3 +40,7 @@ interface but not much else.
 Alternatively there is a web interface.  To start it just run "flask run" from this project's directory and go to the
 URL indicated.  There you can see past queries displayed or click on "Ask" at the top to get to a web form to ask a new
 query.
+
+## Demo ##
+
+If you just want to try it out, there is a version running on Google Cloud Run at https://factcheck-6a6mispc7a-uc.a.run.app/
