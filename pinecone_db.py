@@ -1,5 +1,6 @@
 import configparser
 import pinecone
+import time
 from embeddings import Embedder
 
 
@@ -14,7 +15,7 @@ class PineconeDB:
 
         self.embedder = Embedder()
 
-    def add_strings(self, strings, url):
+    def add_strings(self, strings, url, max_retries=10):
         payload = []
         for index, string in enumerate(strings):
             if len(string.strip()) == 0:
@@ -22,7 +23,21 @@ class PineconeDB:
             embeddings = self.embedder.get_embedding(string)
             payload.append((url + str(index), embeddings.tolist(), {"url": url}))
 
-        self.index.upsert(payload)
+        successful = False
+        tries = 0
+        while tries < max_retries and not successful:
+            try:
+                self.index.upsert(payload)
+                successful = True
+            except Exception as e:
+                print("error connecting to Pinecone, retrying")
+                print(e)
+                time.sleep((tries + 1) * 2)
+
+            tries += 1
+
+        if not successful:
+            print("Could not upload {} to Pinecone".format(url))
 
     def query(self, string):
         embeddings = self.embedder.get_embedding(string)
@@ -37,3 +52,30 @@ class PineconeDB:
             return True
         else:
             return False
+
+    def query_with_retries(self, top_k, include_metadata, id=None, embeddings=None, max_retries=10):
+        successful = False
+        tries = 0
+        while tries < max_retries and not successful:
+            try:
+                if id:
+                    xc = self.index.query(id=id, top_k=top_k, include_metadata=include_metadata)
+                elif embeddings:
+                    xc = self.index.query(embeddings, top_k=top_k, include_metadata=include_metadata)
+                else:
+                    print("Did not provide a valid id or embeddings")
+                    return {"matches": []}
+
+                successful = True
+            except Exception as e:
+                print("error connecting to Pinecone, retrying")
+                print(e)
+                time.sleep((tries + 1) * 2)
+                xc = {"matches": []}
+
+            tries += 1
+
+        if not successful:
+            print("Could not query Pinecone")
+
+        return xc

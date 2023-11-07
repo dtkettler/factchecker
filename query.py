@@ -5,7 +5,7 @@ from gpt import GPT
 
 
 valid_domains = ["www.politifact.com", "www.factcheck.org", "www.snopes.com"]
-threshold = 0.5
+threshold = 0.65
 
 def do_factcheck(val, pcdb, gpt_query):
     results = pcdb.query(val)

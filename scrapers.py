@@ -1,5 +1,6 @@
 import requests
 import sqlite3
+import time
 from urllib.parse import urlparse
 import tiktoken
 from bs4 import BeautifulSoup
@@ -27,9 +28,27 @@ snopes_ratings = {"/fact-check/rating/research-in-progress": "still being resear
                   "/fact-check/rating/legit": "legit.",
                   "/fact-check/rating/recall": "a genuine recall."}
 
+def read_url_with_retries(url, max_retries=10):
+    successful = False
+    tries = 0
+    while tries < max_retries and not successful:
+        try:
+            response = requests.get(url)
+            soup = BeautifulSoup(response.text, 'html.parser')
+
+            successful = True
+        except Exception as e:
+            print("error reading url, retrying")
+            print(e)
+            time.sleep((tries + 1) * 5)
+            soup = BeautifulSoup("<html><head><title>Empty</title></head></html>")
+
+        tries += 1
+
+    return soup
+
 def scrape_politifact_url(url):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    soup = read_url_with_retries(url)
 
     bodies = soup.findAll('body')
     paragraphs = bodies[1].findAll('p')
@@ -41,8 +60,7 @@ def scrape_politifact_url(url):
     return trim_tokens(outstring)
 
 def scrape_factcheckorg_url(url):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    soup = read_url_with_retries(url)
 
     outstring = ""
     divs = soup.findAll('div')
@@ -58,8 +76,7 @@ def scrape_factcheckorg_url(url):
     return trim_tokens(outstring)
 
 def scrape_snopes_url(url):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    soup = read_url_with_retries(url)
 
     outstring = ""
 
@@ -141,9 +158,48 @@ def scrape_appropriate(url):
 
     return output
 
+def get_politifact_articles(url, article_urls=None):
+    soup = read_url_with_retries(url)
+
+    if not article_urls:
+        article_urls = []
+
+    divs = soup.findAll('div')
+    for div in divs:
+        if "class" in div.attrs and div["class"] and div["class"][0] == "m-statement__quote":
+            link = div.findNext('a')
+            article_urls.append("https://www.politifact.com" + link["href"])
+
+    # Now look for next button
+    links = soup.findAll('a')
+    for link in links:
+        if link.text == "Next":
+            next_page = link["href"]
+            return get_politifact_articles("https://www.politifact.com/factchecks/list/" + next_page, article_urls)
+
+    return article_urls
+
+def get_politifact_claim(url):
+    soup = read_url_with_retries(url)
+
+    divs = soup.findAll('div')
+    quote = ""
+    for div in divs:
+        if "class" in div.attrs and div["class"] and div["class"][0] == "m-statement__quote":
+            quote = div.text.strip()
+            break
+
+    h2s = soup.findAll('h2')
+    subline = ""
+    for h2 in h2s:
+        if "class" in h2.attrs and h2["class"] and "c-title--subline" in h2["class"]:
+            subline = h2.text.strip()
+            break
+
+    return [quote, subline]
+
 def get_factcheck_articles(url):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    soup = read_url_with_retries(url)
 
     article_urls = []
     articles = soup.findAll('article')
@@ -154,8 +210,7 @@ def get_factcheck_articles(url):
     return article_urls
 
 def get_factcheck_months(url):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    soup = read_url_with_retries(url)
 
     month_urls = []
     headers = soup.findAll('h3')
@@ -168,8 +223,7 @@ def get_factcheck_months(url):
     return month_urls
 
 def get_snopes_categories(url):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    soup = read_url_with_retries(url)
 
     category_urls = []
     divs = soup.findAll('div')
@@ -185,8 +239,7 @@ def get_snopes_categories(url):
     return category_urls
 
 def get_snopes_articles(url, article_urls=None):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    soup = read_url_with_retries(url)
 
     if not article_urls:
         article_urls = []
@@ -208,8 +261,7 @@ def get_snopes_articles(url, article_urls=None):
     return article_urls
 
 def get_snopes_claim(url):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    soup = read_url_with_retries(url)
 
     divs = soup.findAll('div')
     for div in divs:
