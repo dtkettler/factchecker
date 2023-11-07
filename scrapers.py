@@ -113,6 +113,11 @@ def scrape_snopes_url(url, gpt_query):
                         outstring += tag.text + "\n"
                     tag = tag.next_sibling
 
+    if not found:
+        ps = soup.findAll('p')
+        for p in ps:
+            outstring += p.text.strip() + "\n"
+
     rating_url = ""
     links = soup.findAll('a')
     for link in links:
@@ -138,17 +143,12 @@ def scrape_snopes_url(url, gpt_query):
     return outstring
 
 def scrape_appropriate(url, gpt_query, persist):
-    #con = sqlite3.connect("results.db")
-    #cur = con.cursor()
-
-    #res = cur.execute("SELECT text FROM articles where url = ?", (url,))
-    #row = res.fetchone()
-    #if row:
-    #    return row[0]
+    article = persist.check_for_article(url)
+    if article:
+        return article
 
     domain = urlparse(url).netloc
 
-    output = ""
     if domain == "www.politifact.com":
         output = scrape_politifact_url(url)
     elif domain == "www.factcheck.org":
@@ -158,9 +158,7 @@ def scrape_appropriate(url, gpt_query, persist):
     else:
         return "Invalid Domain"
 
-    #data = ({'url': url, 'text': output})
-    #cur.execute("INSERT INTO articles VALUES (:url, :text)", data)
-    #con.commit()
+    persist.upload_article(url, output)
 
     return output
 

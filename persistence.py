@@ -1,5 +1,6 @@
 import sqlite3
 from google.cloud import firestore
+from google.cloud.firestore import FieldFilter
 import configparser
 from abc import ABC, abstractmethod
 
@@ -122,7 +123,15 @@ class PersistenceFirestore(Persistence):
         return id
 
     def check_for_article(self, url):
+        doc_ref = self.db.collection("articles").where(filter=FieldFilter("url", "==", url))
+        docs = doc_ref.get()
+        for doc in docs:
+            result = doc.to_dict()
+            return result["text"]
+
         return None
 
     def upload_article(self, url, text):
-        print("Not now")
+        data = ({'url': url, 'text': text, "timestamp": firestore.SERVER_TIMESTAMP})
+
+        update_time, ref = self.db.collection("articles").add(data)
