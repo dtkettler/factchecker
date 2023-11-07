@@ -14,6 +14,14 @@ class Persistence(ABC):
     def put_message(self, question, result, url):
         pass
 
+    @abstractmethod
+    def check_for_article(self, url):
+        pass
+
+    @abstractmethod
+    def upload_article(self, url, text):
+        pass
+
 def get_persistence_layer():
     config = configparser.ConfigParser()
     config.read('config.ini')
@@ -60,6 +68,19 @@ class PersistenceSQLite(Persistence):
 
         return id
 
+    def check_for_article(self, url):
+        res = self.cur.execute("SELECT text FROM articles where url = ?", (url,))
+        row = res.fetchone()
+        if row:
+            return row[0]
+        else:
+            return None
+
+    def upload_article(self, url, text):
+        data = ({'url': url, 'text': text})
+        self.cur.execute("INSERT INTO articles VALUES (:url, :text)", data)
+        self.con.commit()
+
 class PersistenceFirestore(Persistence):
     def __init__(self):
         config = configparser.ConfigParser()
@@ -99,3 +120,9 @@ class PersistenceFirestore(Persistence):
         id = ref.id
 
         return id
+
+    def check_for_article(self, url):
+        return None
+
+    def upload_article(self, url, text):
+        print("Not now")

@@ -2,7 +2,6 @@ import openai
 import configparser
 import tiktoken
 import time
-from scrapers import *
 
 
 class GPT:
@@ -35,9 +34,7 @@ class GPT:
 
         return completion
 
-    def get_factcheck(self, query, url):
-        content = scrape_appropriate(url)
-
+    def get_factcheck(self, query, content):
         openai.api_key = self.api_key
         completion = self.completion_with_retries(
             model=self.get_model(content),
@@ -47,7 +44,8 @@ class GPT:
                  #"content": "Answer whether or not \"{}\" is factual given the content or say \"I don't know\" if you can't tell.".format(query)},
                  "content": "Based on the content first answer whether \"{}\" is true, false, mostly true, or mostly false and then give a short summary. If you can't tell then just say \"I don't know.\"".format(query)},
                 {"role": "user", "content": content}
-            ]
+            ],
+            temperature=0.3
         )
 
         #print(completion)
@@ -81,6 +79,21 @@ class GPT:
         )
 
         return completion
+
+    def get_snopes_claim_summary(self, claim, text):
+        openai.api_key = self.api_key
+        completion = self.completion_with_retries(
+            model=self.get_model(text),
+            messages=[
+                {"role": "system",
+                 "content": "Based on the article content summarize whether the claim \"{}\" is true, false, mostly true, or mostly false and then give a short summary.".format(
+                     claim)},
+                {"role": "user", "content": text}
+            ],
+            temperature=0.3
+        )
+
+        return completion['choices'][0]['message']['content']
 
     def get_model(self, text):
         encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")

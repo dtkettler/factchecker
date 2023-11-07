@@ -2,19 +2,21 @@ import sys
 from urllib.parse import urlparse
 from pinecone_db import PineconeDB
 from gpt import GPT
+from scrapers import scrape_appropriate
+import persistence
 
 
 valid_domains = ["www.politifact.com", "www.factcheck.org", "www.snopes.com"]
 threshold = 0.65
 
-def do_factcheck(val, pcdb, gpt_query):
+def do_factcheck(val, pcdb, gpt_query, persist):
     results = pcdb.query(val)
 
     for result in results['matches']:
-        print(result)
         if result['score'] < threshold:
             continue
 
+        print(result)
         print("Found potential match")
 
         url = result['metadata']['url']
@@ -23,7 +25,8 @@ def do_factcheck(val, pcdb, gpt_query):
         if domain not in valid_domains:
             continue
 
-        completion = gpt_query.get_factcheck(val, url)
+        content = scrape_appropriate(url, gpt_query, persist)
+        completion = gpt_query.get_factcheck(val, content)
         if not completion['choices'][0]['message']['content'] == "I don't know.":
             output = completion['choices'][0]['message']['content']
             #output += "\n<p>Find out more at <a href=\"{}\">{}</a></p>".format(url, url)
@@ -41,7 +44,8 @@ if __name__ == "__main__":
     else:
         val = input("Enter statement you want to fact check: ")
 
-    output, url = do_factcheck(val, pcdb, gpt_query)
+    persist = persistence.get_persistence_layer()
+    output, url = do_factcheck(val, pcdb, gpt_query, persist)
 
     print(output)
     print("Find out more at {}".format(url))

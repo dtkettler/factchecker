@@ -75,7 +75,7 @@ def scrape_factcheckorg_url(url):
 
     return trim_tokens(outstring)
 
-def scrape_snopes_url(url):
+def scrape_snopes_url(url, gpt_query):
     soup = read_url_with_retries(url)
 
     outstring = ""
@@ -113,25 +113,31 @@ def scrape_snopes_url(url):
                         outstring += tag.text + "\n"
                     tag = tag.next_sibling
 
-    outstring += "The claim that, \""
-
-    divs = soup.findAll('div')
-    for div in divs:
-        if "class" in div.attrs and div["class"] and div["class"][0] == "claim_cont":
-            outstring += div.text.strip() + "\" is "
-            break
-
+    rating_url = ""
     links = soup.findAll('a')
     for link in links:
         if "class" in link.attrs and link["class"] and link["class"][0] == "rating_link_wrapper":
             rating_url = link['href']
             break
 
-    outstring += snopes_ratings[rating_url]
+    if rating_url:
+        outstring += "The claim that, \""
+
+        divs = soup.findAll('div')
+        for div in divs:
+            if "class" in div.attrs and div["class"] and div["class"][0] == "claim_cont":
+                outstring += div.text.strip() + "\" is "
+                break
+
+        outstring += snopes_ratings[rating_url]
+
+    else:
+        conclusion = gpt_query.get_snopes_claim_summary(get_snopes_claim(url), outstring)
+        outstring += conclusion
 
     return outstring
 
-def scrape_appropriate(url):
+def scrape_appropriate(url, gpt_query, persist):
     #con = sqlite3.connect("results.db")
     #cur = con.cursor()
 
@@ -148,11 +154,11 @@ def scrape_appropriate(url):
     elif domain == "www.factcheck.org":
         output = scrape_factcheckorg_url(url)
     elif domain == "www.snopes.com":
-        output = scrape_snopes_url(url)
+        output = scrape_snopes_url(url, gpt_query)
     else:
         return "Invalid Domain"
 
-    data = ({'url': url, 'text': output})
+    #data = ({'url': url, 'text': output})
     #cur.execute("INSERT INTO articles VALUES (:url, :text)", data)
     #con.commit()
 
@@ -267,6 +273,11 @@ def get_snopes_claim(url):
     for div in divs:
         if "class" in div.attrs and div["class"] and div["class"][0] == "claim_cont":
             return div.text.strip()
+
+    bs = soup.findAll('b')
+    for b in bs:
+        if b.text == "Claim:":
+            return(b.parent.parent.text.replace("Claim:", "").strip())
 
     return ""
 

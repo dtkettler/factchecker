@@ -34,7 +34,7 @@ def ask():
             flash('Question is required!')
         else:
             try:
-                result, url = do_factcheck(question, pcdb, gpt_query)
+                result, url = do_factcheck(question, pcdb, gpt_query, persist)
                 print(result)
                 id = persist.put_message(question, result, url)
 
